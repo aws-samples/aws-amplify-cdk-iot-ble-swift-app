@@ -1,0 +1,24 @@
+# Uncomment the next line to define a global platform for your project
+# platform :ios, '9.0'
+
+target 'BLEX' do
+  # Comment the next line if you don't want to use dynamic frameworks
+  use_frameworks!
+
+  # Pods for BLEX
+  pod 'Amplify', '~> 1.0' #required Amplify dependency
+  pod 'Amplify/Tools', '~> 1.0' #allows to call Amplify CLI from within XCode
+  pod 'AmplifyPlugins/AWSCognitoAuthPlugin', '~> 1.0' # support for Cognito user authentication
+  pod 'AWSIoT'
+  pod 'AWSMobileClient'
+
+  target 'BLEXTests' do
+    inherit! :search_paths
+    # Pods for testing
+  end
+
+  target 'BLEXUITests' do
+    # Pods for testing
+  end
+
+end

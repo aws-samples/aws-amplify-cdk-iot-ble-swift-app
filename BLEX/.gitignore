@@ -1,0 +1,59 @@
+# OS X Finder & OS Generated Files
+.COMPONENT_CACHED
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# Xcode per-user config, Xcode setups
+*.mode1
+*.mode1v3
+*.mode2v3
+*.perspective
+*.perspectivev3
+*.pbxuser
+*.xcworkspace
+xcuserdata
+**/xcuserdata
+**/*.xcuserdata
+
+*.xcworkspace/
+Amplify.xcodeproj/xcuserdata
+Amplify.xcworkspace/xcuserdata
+xcuserdata
+
+# Build products & assets
+build/
+*.o
+*.LinkFileList
+*.hmap
+
+
+# Automatic backup files
+*~.nib/
+*.swp
+*~
+*.dat
+*.dep
+
+# Patched code #
+######################
+*.bak
+
+# Stuff that can't be committed #
+######################
+*credentials.json
+Pods
+# Documentation
+
+awsconfiguration.json
+amplifyconfiguration.json
+credentials-mc.json
+Constants.swift
+
+fastlane/report.xml
+Podfile.lock
