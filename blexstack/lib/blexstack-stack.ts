@@ -12,20 +12,18 @@
 // OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 // SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-import * as cdk from '@aws-cdk/core';
-import * as iam from '@aws-cdk/aws-iam';
-import * as iot from '@aws-cdk/aws-iot';
-import * as cognito from '@aws-cdk/aws-cognito';
-import * as s3 from '@aws-cdk/aws-s3';
-import { CfnAccessKey } from '@aws-cdk/aws-iam';
-import { RemovalPolicy } from '@aws-cdk/core';
+import { Stack, StackProps, RemovalPolicy, CfnOutput } from 'aws-cdk-lib';
+import { Construct } from 'constructs';
+import * as iam from 'aws-cdk-lib/aws-iam';
+import * as iot from 'aws-cdk-lib/aws-iot';
+import * as cognito from 'aws-cdk-lib/aws-cognito';
+import * as s3 from 'aws-cdk-lib/aws-s3';
 
-export class BlexstackStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+export class BlexstackStack extends Stack {
+  constructor(scope: Construct, id: string, props?: StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
-    const stack = BlexstackStack.of(this);
+    const stack = Stack.of(this);
 
     // All the Constants used in this Stack
     const iotPolicyName = "blexMobileAppIoTPermissionsPolicy";
@@ -81,16 +79,10 @@ export class BlexstackStack extends cdk.Stack {
       effect: iam.Effect.ALLOW,
       actions: [
         "mobileanalytics:PutEvents",
-        // These permissions are not needed for this demo, commenting them out.
-        // "cognito-sync:*", 
-        // "cognito-identity:*"
       ],
       resources: ["*"]
     }));
 
-    // Setup the IoT Policy that will be attached to the Cognito ID of the authenticated user.
-    // The connectResource restricts connection to Region/Account and Cognito IDs only.
-    // Publish & Subscribe allowed on all topics for the IoT Endpoint belonging to this Account-Region.
     const connectResource = 'arn:aws:iot:' + stack.region + ':' + stack.account + ':client/${cognito-identity.amazonaws.com:sub}';
     const allotherIoTResource = 'arn:aws:iot:' + stack.region + ':' + stack.account + ':*';
 
@@ -113,7 +105,6 @@ export class BlexstackStack extends cdk.Stack {
       ],
       resources: [
         allotherIoTResource
-        // "*"
     ]
     }));
 
@@ -168,11 +159,6 @@ export class BlexstackStack extends cdk.Stack {
 
     blexIoTPolicy.applyRemovalPolicy(RemovalPolicy.DESTROY);
 
-    // Setup Topic, Rule and Role for routing traffic coming in from the app
-    // 1. Start with the IAM role that will be used for IoT Actions and Rules
-    // 2. For this demo - we will use this Role with appropriate permissions for 
-    //    all rules
-    
     const blexDataIoTRuleRole = new iam.Role(this, 'blexDataIoTRuleRole', {
       roleName: blexDataIoTRuleRoleName,
       assumedBy: new iam.ServicePrincipal('iot.amazonaws.com')
@@ -208,7 +194,7 @@ export class BlexstackStack extends cdk.Stack {
       }        
     });
 
-    // Create a bucket, this is the bucket where IOT Messages will be stored.
+    // Create a bucket for IoT Messages storage
     const blexIOTBucket = new s3.Bucket(this, 'DemoIoTBucket', {
       bucketName: "blexbucket-demoiotmessages",
       versioned: true,
@@ -227,7 +213,6 @@ export class BlexstackStack extends cdk.Stack {
     }));
 
     const blexIoTDataStoreRuleName = 'blexIoTRuleToStoreData';
-    // const SQL_IOTDATASTORE = `SELECT timestamp, cid, nanoData.DeviceId as DeviceId, nanoData.temperature, nanoData.humidity, nanoData.pressure FROM '${republishTopic}/+'`;
     const SQL_IOTDATASTORE = `SELECT timestamp, cid, regexp_replace(nanoData.DeviceId, ":", "") as deviceId, nanoData.temperature, nanoData.humidity, nanoData.pressure FROM '${republishTopic}/+'`;
     const checkIoTDataStoreTopic = "datastore"
     const blexIoTDataStoreRule = new iot.CfnTopicRule(this, 'blexIoTDataStoreRule', {
@@ -252,13 +237,11 @@ export class BlexstackStack extends cdk.Stack {
       }
     })
 
-
-    new cdk.CfnOutput(this, 'AwsProjectRegion', { value: stack.region })
-    new cdk.CfnOutput(this, 'AwsCognitoPoolId', { value: identityPool.ref })
-    new cdk.CfnOutput(this, 'AwsCognitoRegion', { value: stack.region})
-    new cdk.CfnOutput(this, 'AwsUserPoolId', { value: userPool.userPoolId })
-    new cdk.CfnOutput(this, 'AwsUserPoolClientID', { value: userPoolClient.userPoolClientId })
-    new cdk.CfnOutput(this, 'AwsIoTPolicy', { value: iotPolicyName })
-
+    new CfnOutput(this, 'AwsProjectRegion', { value: stack.region })
+    new CfnOutput(this, 'AwsCognitoPoolId', { value: identityPool.ref })
+    new CfnOutput(this, 'AwsCognitoRegion', { value: stack.region})
+    new CfnOutput(this, 'AwsUserPoolId', { value: userPool.userPoolId })
+    new CfnOutput(this, 'AwsUserPoolClientID', { value: userPoolClient.userPoolClientId })
+    new CfnOutput(this, 'AwsIoTPolicy', { value: iotPolicyName })
   }
 }
