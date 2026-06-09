@@ -1,13 +1,11 @@
-import { expect as expectCDK, matchTemplate, MatchStyle } from '@aws-cdk/assert';
-import * as cdk from '@aws-cdk/core';
-import * as Blexstack from '../lib/blexstack-stack';
+import { App } from 'aws-cdk-lib';
+import { Template } from 'aws-cdk-lib/assertions';
+import { BlexstackStack } from '../lib/blexstack-stack';
 
-test('Empty Stack', () => {
-    const app = new cdk.App();
-    // WHEN
-    const stack = new Blexstack.BlexstackStack(app, 'MyTestStack');
-    // THEN
-    expectCDK(stack).to(matchTemplate({
-      "Resources": {}
-    }, MatchStyle.EXACT))
+test('Stack creates resources', () => {
+    const app = new App();
+    const stack = new BlexstackStack(app, 'MyTestStack');
+    const template = Template.fromStack(stack);
+    template.resourceCountIs('AWS::Cognito::UserPool', 1);
+    template.resourceCountIs('AWS::IoT::Policy', 1);
 });
