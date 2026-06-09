@@ -84,7 +84,10 @@ export class BlexstackStack extends Stack {
     }));
 
     const connectResource = 'arn:aws:iot:' + stack.region + ':' + stack.account + ':client/${cognito-identity.amazonaws.com:sub}';
-    const allotherIoTResource = 'arn:aws:iot:' + stack.region + ':' + stack.account + ':*';
+    // Scoped resources for least-privilege IoT access
+    const publishTopicResource = `arn:aws:iot:${stack.region}:${stack.account}:topic/${sourceTopic}`;
+    const subscribeFilterResource = `arn:aws:iot:${stack.region}:${stack.account}:topicfilter/${republishTopic}/\${cognito-identity.amazonaws.com:sub}`;
+    const receiveTopicResource = `arn:aws:iot:${stack.region}:${stack.account}:topic/${republishTopic}/\${cognito-identity.amazonaws.com:sub}`;
 
     authenticatedRole.addToPolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
@@ -99,12 +102,30 @@ export class BlexstackStack extends Stack {
     authenticatedRole.addToPolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       actions: [
-        "iot:Subscribe",
-        "iot:Receive",
         "iot:Publish"
       ],
       resources: [
-        allotherIoTResource
+        publishTopicResource
+    ]
+    }));
+
+    authenticatedRole.addToPolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        "iot:Subscribe",
+      ],
+      resources: [
+        subscribeFilterResource
+    ]
+    }));
+
+    authenticatedRole.addToPolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      actions: [
+        "iot:Receive"
+      ],
+      resources: [
+        receiveTopicResource
     ]
     }));
 
@@ -145,14 +166,30 @@ export class BlexstackStack extends Stack {
            {
             "Effect":"Allow",
             "Action":[
-               "iot:Publish",
-               "iot:Subscribe",
+               "iot:Publish"
+            ],
+            "Resource":[
+                publishTopicResource
+            ]
+           },
+           {
+            "Effect":"Allow",
+            "Action":[
+               "iot:Subscribe"
+            ],
+            "Resource":[
+                subscribeFilterResource
+            ]
+           },
+           {
+            "Effect":"Allow",
+            "Action":[
                "iot:Receive"
             ],
             "Resource":[
-                allotherIoTResource
+                receiveTopicResource
             ]
-         },
+           },
         ]
      },
     })
